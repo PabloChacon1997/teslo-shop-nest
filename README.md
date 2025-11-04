@@ -10,3 +10,8 @@ npm install
 ```
 3. Clonar el archivo ```.env.template``` y renombrarlo a ```.env```
 4. Modifiar las variables de entorno
+5. Ejecutar el SEED
+```
+http://localhost:3000/api/seed
+```
+6. Levantar el backend: ```npm run start:dev```
