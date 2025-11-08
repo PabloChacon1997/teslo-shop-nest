@@ -14,11 +14,12 @@ export class SeedService {
     await this.productService.deleteAllProducts();
     const products = initialData.products;
     const insertPromises: any = [];
+    console.log({ products });
 
-    products.forEach((product) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      insertPromises.push(this.productService.create(product));
-    });
+    // products.forEach((product) => {
+    //   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    //   insertPromises.push(this.productService.create(product));
+    // });
 
     await Promise.all(insertPromises);
     return true;
