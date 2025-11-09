@@ -58,6 +58,24 @@ export class AuthService {
     };
   }
 
+  checkAuthStatus(user: User) {
+    if (!user.isActive) {
+      throw new UnauthorizedException(
+        'Your user is not active, talk with the admin',
+      );
+    }
+
+    const { id, email, password, fullName } = user;
+
+    return {
+      id,
+      email,
+      password,
+      fullName,
+      token: this.getJwtToken({ id }),
+    };
+  }
+
   private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
