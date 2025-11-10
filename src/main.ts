@@ -15,7 +15,7 @@ async function bootstrap() {
     }),
   );
   const config = new DocumentBuilder()
-    .setTitle('Cats Teslo RESTFull API')
+    .setTitle('Teslo RESTFull API')
     .setDescription('Teslo shop endpoints')
     .setVersion('1.0')
     .build();

@@ -15,3 +15,7 @@ npm install
 http://localhost:3000/api/seed
 ```
 6. Levantar el backend: ```npm run start:dev```
+7. Para ver la documentacion de las API's acceda al siguiente enlace:
+```
+http://localhost:3000/api
+```
