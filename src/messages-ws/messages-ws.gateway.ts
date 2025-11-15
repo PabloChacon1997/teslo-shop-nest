@@ -8,6 +8,8 @@ import {
 import { MessagesWsService } from './messages-ws.service';
 import { Server, Socket } from 'socket.io';
 import { NewMessageDto } from './dtos/new-message.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/auth/interfaces';
 
 @WebSocketGateway({ cors: true })
 export class MessagesWsGateway
@@ -15,11 +17,22 @@ export class MessagesWsGateway
 {
   @WebSocketServer() wss: Server;
 
-  constructor(private readonly messagesWsService: MessagesWsService) {}
-  handleConnection(client: Socket) {
+  constructor(
+    private readonly messagesWsService: MessagesWsService,
+    private readonly jwtService: JwtService,
+  ) {}
+  async handleConnection(client: Socket) {
     const token = client.handshake.headers.authentication as string;
-    console.log({ token });
-    this.messagesWsService.registerClient(client);
+    let payload: JwtPayload;
+    try {
+      payload = this.jwtService.verify(token);
+      await this.messagesWsService.registerClient(client, payload.id);
+    } catch (error) {
+      console.log(error);
+      client.disconnect();
+      return;
+    }
+    // console.log({ payload });
     this.wss.emit(
       'clients-updated',
       this.messagesWsService.getConnectedClients(),
@@ -48,7 +61,7 @@ export class MessagesWsGateway
     // });
     //! Emitir a todos menos
     this.wss.emit('messages-from-server', {
-      fullName: 'Soy yoo',
+      fullName: this.messagesWsService.getUserFullNameBySocketId(client.id),
       message: payload.message || 'No Message',
     });
   }
