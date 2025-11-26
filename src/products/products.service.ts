@@ -5,7 +5,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import {
+  ArrayContains,
+  Between,
+  DataSource,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { validate as isUUID } from 'uuid';
 
@@ -44,19 +52,59 @@ export class ProductsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
+    const {
+      limit = 10,
+      offset = 0,
+      gender = '',
+      minPrice,
+      maxPrice,
+      sizes,
+      q: query,
+    } = paginationDto;
+    const sizesArray = sizes ? sizes.toUpperCase().split(',') : undefined;
+
+    const priceWhere =
+      minPrice !== undefined && maxPrice !== undefined
+        ? Between(minPrice, maxPrice)
+        : minPrice !== undefined
+          ? MoreThanOrEqual(minPrice)
+          : maxPrice !== undefined
+            ? LessThanOrEqual(maxPrice)
+            : undefined;
     const products = await this.productRepository.find({
       take: limit,
       skip: offset,
       relations: {
         images: true,
       },
+      order: {
+        id: 'ASC',
+      },
+      where: {
+        gender: gender ? gender : undefined,
+        price: priceWhere,
+        sizes: sizesArray ? ArrayContains(sizesArray) : undefined,
+        title: query ? ILike(`%${query}%`) : undefined,
+      },
     });
 
-    return products.map((product) => ({
-      ...product,
-      images: product.images?.map((img) => img.url),
-    }));
+    const totalProducts = await this.productRepository.count({
+      where: {
+        gender: gender ? gender : undefined,
+        price: priceWhere,
+        sizes: sizesArray ? ArrayContains(sizesArray) : undefined,
+        title: query ? ILike(`%${query}%`) : undefined,
+      },
+    });
+
+    return {
+      count: totalProducts,
+      pages: Math.ceil(totalProducts / limit),
+      products: products.map((product) => ({
+        ...product,
+        images: product.images?.map((img) => img.url),
+      })),
+    };
   }
 
   async findOne(term: string) {
